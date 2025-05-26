@@ -1,0 +1,62 @@
+version: '3.9'
+
+services:
+  evolution-api:
+    container_name: evolution_api
+    image: atendai/evolution-api:v2.1.1
+    restart: always
+    ports:
+      - "${EVOLUTION_PORT}:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./data_evolution:/evolution/instances
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+    networks:
+      - evolution-net
+
+  postgres:
+    image: postgres:15
+    container_name: evolution_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./data_postgres:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      - evolution-net
+
+  redis:
+    image: redis:7
+    container_name: evolution_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - ./data_redis:/data
+    networks:
+      - evolution-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: evolution_rabbitmq
+    restart: always
+    ports:
+      - "${RABBITMQ_PORT_UI}:15672"  # Interfaz Web
+      - "${RABBITMQ_PORT_AMQP}:5672" # Protocolo AMQP
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    networks:
+      - evolution-net
+
+networks:
+  evolution-net:
+    driver: bridge

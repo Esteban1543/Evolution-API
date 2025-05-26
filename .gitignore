@@ -1,0 +1,5 @@
+.env
+
+data_evolution
+data_postgres
+data_redis
